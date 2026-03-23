@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from app.config import settings
 from app.database.connection import engine
+from app.routers import candidato 
 
 
 app = FastAPI(
@@ -13,6 +14,8 @@ def root():
     return {
         "message": "Corriendo API Sivoter",
     }
+
+app.include_router(candidato.router)
 
 @app.on_event("startup")
 def test_connection():
