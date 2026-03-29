@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from app.config import settings
 from app.database.connection import engine
-from app.routers import candidato 
+from app.routers import candidato, mesaVotacion
 
 
 app = FastAPI(
@@ -16,6 +16,7 @@ def root():
     }
 
 app.include_router(candidato.router)
+app.include_router(mesaVotacion.router)
 
 @app.on_event("startup")
 def test_connection():
