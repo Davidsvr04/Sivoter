@@ -8,7 +8,6 @@ from app.schemas.mesaVotacionSchema import MesaVotacionCreate, MesaVotacionUpdat
 
 
 FK_MAP = {
-    "municipio_id": "municipios",
     "barrio_id": "barrios",
 }
 
