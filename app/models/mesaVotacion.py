@@ -1,15 +1,13 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from app.database.base import Base
 
 
 class MesaVotacion(Base):
-    __tablename__ = "mesas_votacion"
+    __tablename__ = "lugares_votacion"
 
     id = Column(Integer, primary_key=True, index=True)
-    departamento = Column(String(100), nullable=False)
-    municipio = Column(String(100), nullable=False)
-    barrio = Column(String(100), nullable=False)
-    nombre_lugar = Column(String(150), nullable=False)
-    numero_mesa = Column(Integer, nullable=False)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    nombre = Column(String(150), nullable=False)
+    direccion = Column(String(200), nullable=True)
+    municipio_id = Column(Integer, ForeignKey("municipios.id", ondelete="SET NULL"), nullable=True)
+    barrio_id = Column(Integer, ForeignKey("barrios.id", ondelete="SET NULL"), nullable=True)
+    numero_mesa = Column(Integer, nullable=True)

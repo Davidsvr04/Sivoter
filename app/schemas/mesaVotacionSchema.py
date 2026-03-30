@@ -4,11 +4,11 @@ from datetime import datetime
 
 
 class MesaVotacionBase(BaseModel):
-    departamento: str = Field(..., min_length=1, max_length=100)
-    municipio: str = Field(..., min_length=1, max_length=100)
-    barrio: str = Field(..., min_length=1, max_length=100)
-    nombre_lugar: str = Field(..., min_length=1, max_length=150)
-    numero_mesa: int = Field(..., gt=0)
+    nombre: str = Field(..., min_length=1, max_length=150)
+    direccion: Optional[str] = Field(default=None, max_length=200)
+    municipio_id: int
+    barrio_id: Optional[int] = None
+    numero_mesa: Optional[int] = Field(default=None, gt=0)
 
 
 class MesaVotacionCreate(MesaVotacionBase):
@@ -16,10 +16,10 @@ class MesaVotacionCreate(MesaVotacionBase):
 
 
 class MesaVotacionUpdate(BaseModel):
-    departamento: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    municipio: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    barrio: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    nombre_lugar: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    nombre: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    direccion: Optional[str] = Field(default=None, max_length=200)
+    municipio_id: Optional[int] = None
+    barrio_id: Optional[int] = None
     numero_mesa: Optional[int] = Field(default=None, gt=0)
 
 

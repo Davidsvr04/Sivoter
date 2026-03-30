@@ -1,24 +1,47 @@
 -- =========================
--- TABLA MESAS DE VOTACIÓN
+-- TABLA BARRIOS
 -- =========================
 
-CREATE TABLE mesas_votacion (
+CREATE TABLE barrios (
     id SERIAL PRIMARY KEY,
-    departamento VARCHAR(100) NOT NULL,
-    municipio VARCHAR(100) NOT NULL,
-    barrio VARCHAR(100) NOT NULL,
-    nombre_lugar VARCHAR(150) NOT NULL,
-    numero_mesa INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    nombre VARCHAR(100) NOT NULL,
+    municipio_id INT NOT NULL,
+    CONSTRAINT fk_barrio_municipio
+        FOREIGN KEY (municipio_id)
+        REFERENCES municipios(id)
+        ON DELETE CASCADE
 );
+
+-- =========================
+-- ACTUALIZAR TABLA LUGARES_VOTACION
+-- =========================
+
+ALTER TABLE lugares_votacion 
+    ADD COLUMN barrio_id INT,
+    ADD COLUMN numero_mesa INT,
+    ADD CONSTRAINT fk_lugar_barrio
+        FOREIGN KEY (barrio_id)
+        REFERENCES barrios(id)
+        ON DELETE SET NULL;
 
 -- =========================
 -- DATOS DE EJEMPLO
 -- =========================
 
-INSERT INTO mesas_votacion (departamento, municipio, barrio, nombre_lugar, numero_mesa)
+-- Insertar departamento
+INSERT INTO departamentos (nombre) VALUES ('Antioquia');
+
+-- Insertar municipio
+INSERT INTO municipios (nombre, departamento_id) VALUES ('Medellín', 1);
+
+-- Insertar barrios
+INSERT INTO barrios (nombre, municipio_id) VALUES 
+    ('El Poblado', 1),
+    ('Centro', 1);
+
+-- Insertar lugares de votación con mesas
+INSERT INTO lugares_votacion (nombre, direccion, municipio_id, barrio_id, numero_mesa)
 VALUES 
-    ('Antioquia', 'Medellín', 'El Poblado', 'Colegio INEM', 1),
-    ('Antioquia', 'Medellín', 'El Poblado', 'Colegio INEM', 2),
-    ('Antioquia', 'Medellín', 'Centro', 'Institución Educativa San Alonso', 1);
+    ('Colegio INEM', 'Calle 50 # 48-50', 1, 1, 1),
+    ('Colegio INEM', 'Calle 50 # 48-50', 1, 1, 2),
+    ('Institución Educativa San Alonso', 'Carrera 48 # 48-50', 1, 2, 1);
