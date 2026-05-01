@@ -42,5 +42,5 @@ def update(mesa_id: int, payload: MesaVotacionUpdate, usuario_id: Optional[int] 
 @router.delete("/{mesa_id}", status_code=status.HTTP_204_NO_CONTENT)
 def remove(mesa_id: int, usuario_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """Eliminar una mesa de votación."""
-    delete_mesa_votacion(db, mesa_id, usuario_id)
-    return None
+    delete_mesa_votacion(db, mesa_id)
+    return ('Mesa de votación eliminada exitosamente.')

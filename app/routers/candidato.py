@@ -36,6 +36,6 @@ def update(candidato_id: int, payload: CandidatoUpdate, usuario_id: Optional[int
 
 
 @router.delete("/{candidato_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove(candidato_id: int, usuario_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
-    delete_candidato(db, candidato_id, usuario_id)
-    return None
+def remove(candidato_id: int, db: Session = Depends(get_db)):
+    delete_candidato(db, candidato_id)
+    return ('Candidato eliminado exitosamente.')
