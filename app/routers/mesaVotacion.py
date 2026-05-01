@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from app.database.connection import get_db
@@ -16,9 +16,9 @@ router = APIRouter(prefix="/mesas-votacion", tags=["Mesas de Votación"])
 
 
 @router.post("", response_model=MesaVotacionResponse, status_code=status.HTTP_201_CREATED)
-def create(payload: MesaVotacionCreate, db: Session = Depends(get_db)):
+def create(payload: MesaVotacionCreate, usuario_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """Crear una nueva mesa de votación."""
-    return create_mesa_votacion(db, payload)
+    return create_mesa_votacion(db, payload, usuario_id)
 
 
 @router.get("", response_model=List[MesaVotacionResponse])
@@ -34,13 +34,13 @@ def get_one(mesa_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{mesa_id}", response_model=MesaVotacionResponse)
-def update(mesa_id: int, payload: MesaVotacionUpdate, db: Session = Depends(get_db)):
+def update(mesa_id: int, payload: MesaVotacionUpdate, usuario_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """Actualizar una mesa de votación."""
-    return update_mesa_votacion(db, mesa_id, payload)
+    return update_mesa_votacion(db, mesa_id, payload, usuario_id)
 
 
 @router.delete("/{mesa_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove(mesa_id: int, db: Session = Depends(get_db)):
+def remove(mesa_id: int, usuario_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
     """Eliminar una mesa de votación."""
     delete_mesa_votacion(db, mesa_id)
     return ('Mesa de votación eliminada exitosamente.')

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.mesaVotacion import MesaVotacion
 from app.schemas.mesaVotacionSchema import MesaVotacionCreate, MesaVotacionUpdate
+from app.services.kafkaService import kafka_producer
 
 
 FK_MAP = {
@@ -28,7 +29,7 @@ def _validate_foreign_keys(db: Session, data: dict) -> None:
             )
 
 
-def create_mesa_votacion(db: Session, payload: MesaVotacionCreate) -> MesaVotacion:
+def create_mesa_votacion(db: Session, payload: MesaVotacionCreate, usuario_id: int = None) -> MesaVotacion:
     """Crear una nueva mesa de votación (lugar de votación)."""
     data = payload.model_dump()
     _validate_foreign_keys(db, data)
@@ -37,6 +38,10 @@ def create_mesa_votacion(db: Session, payload: MesaVotacionCreate) -> MesaVotaci
     db.add(mesa)
     db.commit()
     db.refresh(mesa)
+    
+    # Registrar en Kafka
+    kafka_producer.send_mesa_created(mesa.id, mesa.nombre, usuario_id)
+    
     return mesa
 
 
@@ -56,7 +61,7 @@ def get_mesa_votacion(db: Session, mesa_id: int) -> MesaVotacion:
     return mesa
 
 
-def update_mesa_votacion(db: Session, mesa_id: int, payload: MesaVotacionUpdate) -> MesaVotacion:
+def update_mesa_votacion(db: Session, mesa_id: int, payload: MesaVotacionUpdate, usuario_id: int = None) -> MesaVotacion:
     """Actualizar una mesa de votación."""
     mesa = get_mesa_votacion(db, mesa_id)
     
@@ -68,11 +73,20 @@ def update_mesa_votacion(db: Session, mesa_id: int, payload: MesaVotacionUpdate)
     
     db.commit()
     db.refresh(mesa)
+    
+    # Registrar en Kafka
+    kafka_producer.send_mesa_updated(mesa.id, mesa.nombre, usuario_id)
+    
     return mesa
 
 
-def delete_mesa_votacion(db: Session, mesa_id: int) -> None:
+def delete_mesa_votacion(db: Session, mesa_id: int, usuario_id: int = None) -> None:
     """Eliminar una mesa de votación."""
     mesa = get_mesa_votacion(db, mesa_id)
+    mesa_nombre = mesa.nombre
+    
     db.delete(mesa)
     db.commit()
+    
+    # Registrar en Kafka
+    kafka_producer.send_mesa_deleted(mesa_id, mesa_nombre, usuario_id)
