@@ -33,15 +33,27 @@ class KafkaEventConsumer:
                 *self.topics,
                 bootstrap_servers=self.bootstrap_servers,
                 group_id='sivoter-logs-group',
-                value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+                value_deserializer=self._safe_deserialize,
                 auto_offset_reset='earliest',
-                enable_auto_commit=True
+                enable_auto_commit=True,
+                auto_commit_interval_ms=5000
             )
             logger.info(f"KafkaConsumer conectado a topics: {self.topics}")
             return True
         except Exception as e:
             logger.error(f"Error conectando KafkaConsumer: {e}")
             return False
+    
+    @staticmethod
+    def _safe_deserialize(data):
+        """Deserializar JSON de forma segura."""
+        if not data:
+            return None
+        try:
+            return json.loads(data.decode('utf-8'))
+        except (json.JSONDecodeError, AttributeError, UnicodeDecodeError) as e:
+            logger.warning(f"Error deserializando mensaje: {e}, data: {data[:100]}")
+            return None
     
     def process_message(self, message: dict) -> None:
         """
@@ -50,6 +62,10 @@ class KafkaEventConsumer:
         Args:
             message: Diccionario con los datos del evento
         """
+        if not message:
+            logger.warning("Mensaje vacío o inválido recibido")
+            return
+        
         try:
             db = SessionLocal()
             
@@ -58,7 +74,8 @@ class KafkaEventConsumer:
             usuario_id = message.get('usuario_id')
             
             if not evento or not descripcion:
-                logger.warning(f"Mensaje inválido: {message}")
+                logger.warning(f"Mensaje incompleto (falta evento o descripción): {message}")
+                db.close()
                 return
             
             # Guardar en BD
@@ -67,7 +84,9 @@ class KafkaEventConsumer:
             
             db.close()
         except Exception as e:
-            logger.error(f"Error procesando mensaje de Kafka: {e}")
+            logger.error(f"Error procesando mensaje de Kafka: {e}", exc_info=True)
+            if 'db' in locals():
+                db.close()
     
     def start(self) -> None:
         """Iniciar el consumer en un thread separado."""
@@ -79,12 +98,21 @@ class KafkaEventConsumer:
             try:
                 logger.info("Iniciando consumo de eventos Kafka...")
                 for message in self.consumer:
-                    if message.value:
-                        self.process_message(message.value)
+                    try:
+                        if message.value:
+                            self.process_message(message.value)
+                    except Exception as e:
+                        logger.error(f"Error procesando mensaje individual: {e}")
+                        continue
+            except KeyboardInterrupt:
+                logger.info("Consumer detenido manualmente")
             except Exception as e:
-                logger.error(f"Error en consumer loop: {e}")
+                logger.error(f"Error en consumer loop: {e}", exc_info=True)
             finally:
-                self.consumer.close()
+                try:
+                    self.consumer.close()
+                except:
+                    pass
         
         # Ejecutar en un thread daemon
         thread = Thread(target=run, daemon=True)
