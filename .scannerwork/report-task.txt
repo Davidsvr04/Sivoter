@@ -2,5 +2,5 @@ projectKey=Sivoter
 serverUrl=http://localhost:9000
 serverVersion=26.4.0.121862
 dashboardUrl=http://localhost:9000/dashboard?id=Sivoter
-ceTaskId=b205cda7-b33a-4334-9fd0-2a784a26ed9c
-ceTaskUrl=http://localhost:9000/api/ce/task?id=b205cda7-b33a-4334-9fd0-2a784a26ed9c
+ceTaskId=c3f1bdcd-920b-4601-8dbc-50ba0fd421d5
+ceTaskUrl=http://localhost:9000/api/ce/task?id=c3f1bdcd-920b-4601-8dbc-50ba0fd421d5

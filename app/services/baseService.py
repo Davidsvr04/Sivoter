@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TypeVar
+from typing import TypeVar, overload
 from collections.abc import Sequence
 from fastapi import HTTPException
 from sqlalchemy import text
@@ -27,10 +27,10 @@ class BaseService[T]:
                     detail=f"El valor {value} de '{field}' no existe en '{table}'."
                 )
     
-    def list_all(self, db: Session, skip: int = 0, limit: int = 100) -> Sequence[T]:
+    def list_all[U: T](self, db: Session, skip: int = 0, limit: int = 100) -> Sequence[U]:
         return db.query(self.model_class).offset(skip).limit(limit).all()
     
-    def get_by_id(self, db: Session, entity_id: int) -> T:
+    def get_by_id[U: T](self, db: Session, entity_id: int) -> U:
         entity = db.query(self.model_class).filter(self.model_class.id == entity_id).first()
         if not entity:
             raise HTTPException(
@@ -39,7 +39,7 @@ class BaseService[T]:
             )
         return entity
     
-    def delete(self, db: Session, entity_id: int) -> T:
+    def delete[U: T](self, db: Session, entity_id: int) -> U:
         entity = self.get_by_id(db, entity_id)
         db.delete(entity)
         db.commit()
