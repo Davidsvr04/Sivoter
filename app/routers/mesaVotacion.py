@@ -43,4 +43,4 @@ def update(mesa_id: int, payload: MesaVotacionUpdate, db: Session = Depends(get_
 def remove(mesa_id: int, db: Session = Depends(get_db)):
     """Eliminar una mesa de votación."""
     delete_mesa_votacion(db, mesa_id)
-    return None
+    return ('Mesa de votación eliminada exitosamente.')
