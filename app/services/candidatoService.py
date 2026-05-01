@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.models.candidatos import Candidato
 from app.schemas.candidatoSchema import CandidatoCreate, CandidatoUpdate
+from app.services.kafkaService import kafka_producer
 
 
 FK_MAP = {
@@ -32,7 +33,7 @@ def _validate_foreign_keys(db: Session, data: dict) -> None:
             )
 
 
-def create_candidato(db: Session, payload: CandidatoCreate) -> Candidato:
+def create_candidato(db: Session, payload: CandidatoCreate, usuario_id: int = None) -> Candidato:
     data = payload.model_dump()
     _validate_foreign_keys(db, data)
 
@@ -40,6 +41,10 @@ def create_candidato(db: Session, payload: CandidatoCreate) -> Candidato:
     db.add(candidato)
     db.commit()
     db.refresh(candidato)
+    
+    # Registrar en Kafka
+    kafka_producer.send_candidato_created(candidato.id, candidato.nombre, usuario_id)
+    
     return candidato
 
 
@@ -54,7 +59,7 @@ def get_candidato(db: Session, candidato_id: int) -> Candidato:
     return candidato
 
 
-def update_candidato(db: Session, candidato_id: int, payload: CandidatoUpdate) -> Candidato:
+def update_candidato(db: Session, candidato_id: int, payload: CandidatoUpdate, usuario_id: int = None) -> Candidato:
     candidato = get_candidato(db, candidato_id)
     update_data = payload.model_dump(exclude_unset=True)
 
@@ -65,10 +70,19 @@ def update_candidato(db: Session, candidato_id: int, payload: CandidatoUpdate) -
 
     db.commit()
     db.refresh(candidato)
+    
+    # Registrar en Kafka
+    kafka_producer.send_candidato_updated(candidato.id, candidato.nombre, usuario_id)
+    
     return candidato
 
 
-def delete_candidato(db: Session, candidato_id: int) -> None:
+def delete_candidato(db: Session, candidato_id: int, usuario_id: int = None) -> None:
     candidato = get_candidato(db, candidato_id)
+    candidato_nombre = candidato.nombre
+    
     db.delete(candidato)
     db.commit()
+    
+    # Registrar en Kafka
+    kafka_producer.send_candidato_deleted(candidato_id, candidato_nombre, usuario_id)
